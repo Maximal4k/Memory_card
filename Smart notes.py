@@ -1,0 +1,187 @@
+import json
+import os
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QApplication,
+    QWidget,
+    QLabel,
+    QPushButton,
+    QListWidget,
+    QLineEdit,
+    QTextEdit,
+    QInputDialog,
+    QVBoxLayout,
+    QHBoxLayout, QMainWindow
+)
+
+
+if os.path.exists("notes_data.json"):
+    with open("notes_data.json", "r", encoding="utf-8") as file:
+        notes = json.load(file)
+else:
+    notes = {
+        "Ласкаво просимо!": {
+            "текст": "Це найкращий додаток для заміток у світі!",
+            "теги": ["додаток", "інструкція"]
+        }
+    }
+    with open("notes_data.json", "w", encoding="utf-8") as file:
+        json.dump(notes, file, ensure_ascii=False, indent=2)
+
+
+class SmartNotes(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Розумні замітки")
+        self.resize(900,600)
+
+        self.list_notes = QListWidget()
+        self.list_notes_label = QLabel("Список заміток")
+
+        self.button_note_create = QPushButton("Створити замітку")
+        self.button_note_create.setStylesheet("background-ontor: Line; \n"
+                                              "border - radius: 10px;\n"
+                                              "border: 3px solid:")
+
+        self.button_note_del = QPushButton("Видалити замітку")
+        self.button_note_del.setStyleSheet("background-color: red;\n"
+                                           "border - radius: 10px;\n"
+                                           "border: 3px solid;")
+
+        self.button_note_save = QPushButton("Зберегти замітку")
+        self.button_note_save.setStyleSheet("background-color: yellow; \n"
+                                            "border-radius: 10px;\n"
+                                            "border: 3px solid;")
+
+        self.field_tag = QLineEdit("")
+        self.field_tag.setPlaceholderText("Введіть тег...")
+        self.field_text = QTextEdit()
+        self.button_tag_add = QPushButton("Додати до замітки")
+        self.button_tag_add.setStyleSheet("background-color: line;\n" 
+                                          "border-radius: 18px;\n"
+                                          "border: 2px solid;")
+        self.button_tag_del = QPushButton("Відкріпити від замітки")
+        self.button_tag_del.setStyleSheet("background-color: red;\n"
+                                          "border-radius: 18px;\n"
+                                          "border: 2px solid;")
+
+        self.button_tag_search = QPushButton("Шукати замітки за тегом")
+        self.button_tag_search.setStyleSheet("background-color: yellow;\n"
+                                             "border-radius: 10px;\n"
+                                             "border: 2px solid;")
+
+        self.list_tags = QListWidget()
+        self.list_tags_label = QLabel("Список тегів")
+
+        self.layout.notes = QHBoxLayout()
+        self.col_1 = QVBoxLayout()
+        self.col_1.addWidget(self.field_text)
+
+        self.col_2 = QVBoxLayout()
+        self.col_2.addWidget(self.list_notes_label)
+        self.col_2.addWidget(self.list_notes)
+        self.row1 = QHBoxLayout()
+        self.row1.addWidget(self.button_note_create)
+        self.row1.addWidget(self.button_note_del)
+        self.row2 = QHBoxLayout()
+        self.row2.addWidget(self.button_note_save)
+        self.row2.addLayout(self.row1)
+        self.row2.addLayout(self.row2)
+
+        self.col_2.addWidget(self.list_tags_label)
+        self.col_2.addWidget(self.list_tags)
+        self.col_2.addWidget(self.field_tag)
+        self.row3 = QHBoxLayout()
+        self.row3.addWidget(self.button_tag_add)
+        self.row3.addWidget(self.button_tag_del)
+        self.row4 = QHBoxLayout()
+        self.row4.addWidget(self.button_tag_search)
+        self.col_2.addLayout(self.row3)
+        self.col_2.addLayout(self.row4)
+
+        self.layout_notes.addLayout(self.col_1, stretch=2)
+        self.layout_notes.addLayout(self.col_2, stretch=1)
+        self.setLayout(self.layout_notes)
+
+        self.button_note_create.clicked.connect(self.add_note)
+        self.list_notes.itemClicked.connect(self.show_note)
+        self.button_note_save.clicked.connect(self.save_note)
+        self.button_note_del.clicked.connect(self.del_note)
+        self.button_tag_add.clicked.connect(self.add_tag)
+        self.button_tag_del.clicked.connect(self.del_tag)
+        self.button_tag_search.clicked.connect(self.search_tag)
+
+
+def show_note(self):
+    key = self.list_notes.selectedItem()[0].text()
+    self.field_text.setText(notes[key]["текст"])
+    self.list_tags.clear()
+    self.list_tags.addItems(notes[key]["теги"])
+
+def del_note(self):
+    if self.list_notes.selectedItems():
+        key = self.list_notes.selectedItems[0].text()
+        del notes[key]
+        self.list_notes.clear()
+        self.list_tags.clear()
+        self.field_text.clear()
+        self.list_notes.addItems(notes)
+        with open("notes.json", "w", encoding="utf-8") as file:
+            json.dump(notes, file, sort_keys=True, indent=2, ensure_ascii=False)
+        print(notes)
+    else:
+        print("обери замітку")
+
+def add_tag(self):
+    pass
+
+def del_tag(self):
+    pass
+
+def add_note(self):
+    note_name, ok = QInputDialog.getText(notes_win, "Додати замітку", "Назва замітки:")
+    if ok and note_name != "":
+        notes[note_name] = {"текст": "", "теги": []}
+        self.list_notes. addItem(note_name)
+        self.list_tags.addItems(notes[note_name]["теги"])
+        print(notes)
+
+def save_note(self):
+    if self.list_notes.selectedItems():
+        key = self.list_notes.selectedItems()[0].text()
+        notes[key]["текст"] = self. field_text.toPlainText()
+        with open("notes.json", "w", encoding="utf-8") as file:
+            json.dump(notes,file, sort_keys=True, indent=2, ensure_ascii=False)
+        print(notes)
+    else:
+        print("обери замітку")
+
+def search_tag(self):
+    tag = self.field_tag.text()
+    if self.button_tag_search.text() == "шукати за тегом" and tag:
+        notes_filtered = {}
+        for note in notes:
+            if tag in notes[note]["теги"]:
+                notes_filtered[note] = notes[note]
+        self.button_tag_search.setText("скинути пошук")
+        self.list_notes.clear()
+        self.list_tags.clear()
+        self.list_tags.addItems(notes_filtered)
+    elif self.button_tag_search.text() == "скинути пошук":
+        self.list_notes.clear()
+        self.list_tags.clear()
+        self.field_tag.clear()
+        self.list_notes.addItems(notes)
+        self.button_tag_search.setText("шукати за тегом")
+    else:
+        pass
+
+
+
+if __name__ == "__main__":
+    import sys
+    app = QApplication(sys.argv)
+    notes_win = QMainWindow()
+    notes_win.show()
+    #notes_win.view_notes()
+    sys.exit(app.exec_())
